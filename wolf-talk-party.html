@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wolf Talk Party</title>
+  <style>
+    :root{
+      --orange:#ff8a3d;
+      --yellow:#ffd166;
+      --pink:#ff6b9d;
+      --blue:#4dabf7;
+      --green:#51cf66;
+      --purple:#b197fc;
+      --red:#ff6b6b;
+      --dark:#2b2d42;
+      --light:#fff8ed;
+      --card:#ffffff;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #ffe8a3, transparent 35%), linear-gradient(135deg, #fff4d6 0%, #ffe0eb 50%, #dff3ff 100%);
+      color:var(--dark);
+      min-height:100vh;
+      padding:18px;
+    }
+    .app{max-width:520px;margin:0 auto;}
+    .hero{text-align:center;margin:12px 0 18px;}
+    .badge{display:inline-block;background:var(--dark);color:white;border-radius:999px;padding:7px 13px;font-size:13px;margin-bottom:8px;}
+    h1{margin:0;font-size:34px;letter-spacing:.5px;}
+    .subtitle{margin:8px 0 0;color:#555;font-size:14px;}
+    .card{background:rgba(255,255,255,.92);border:3px solid #fff;border-radius:24px;padding:18px;box-shadow:0 12px 28px rgba(43,45,66,.13);margin-bottom:16px;}
+    .section-title{font-weight:800;margin:0 0 10px;font-size:16px;display:flex;align-items:center;gap:7px;}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    label{display:block;font-weight:700;font-size:13px;margin:10px 0 6px;}
+    select, button{font:inherit;}
+    select{
+      width:100%;padding:13px;border-radius:15px;border:2px solid #f1c27d;background:#fff;outline:none;font-weight:700;
+    }
+    .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .seg button,.chip button,.timer-options button,.primary,.secondary,.danger{
+      cursor:pointer;border:none;border-radius:16px;padding:13px 8px;font-weight:800;box-shadow:0 5px 0 rgba(0,0,0,.13);transition:.05s transform,.05s box-shadow;
+    }
+    button:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.13);}
+    .seg button{background:#fff;border:2px solid #ffd166;font-size:14px;}
+    .seg button[data-mode="standard"].active{background:var(--yellow);}
+    .seg button[data-mode="niapin"].active{background:#b197fc;color:white;border-color:#b197fc;}
+    .seg button[data-mode="hard"].active{background:#ff6b6b;color:white;border-color:#ff6b6b;}
+    .timer-options{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+    .timer-options button{background:#fff;border:2px solid #bde0fe;font-size:13px;}
+    .timer-options button.active{background:#bde0fe;}
+    .chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+    .chip input{display:none;}
+    .chip span{display:block;text-align:center;border:2px solid #ffcad4;background:#fff;border-radius:16px;padding:12px 8px;font-weight:800;box-shadow:0 5px 0 rgba(0,0,0,.10);}
+    .chip input:checked + span{background:#ffcad4;border-color:#ff6b9d;}
+    .primary{width:100%;background:linear-gradient(135deg,var(--orange),var(--pink));color:white;font-size:18px;margin-top:16px;padding:16px;}
+    .secondary{background:#fff;border:2px solid #8ecae6;color:var(--dark);width:100%;}
+    .danger{background:#2b2d42;color:white;width:100%;}
+    .hidden{display:none!important;}
+    .game-header{text-align:center;}
+    .category-pill{display:inline-block;background:#e7f5ff;border:2px solid #74c0fc;padding:8px 13px;border-radius:999px;font-weight:800;margin:8px 0;}
+    .player-card{text-align:center;padding:24px 16px;}
+    .player-num{font-size:26px;font-weight:900;margin:0 0 8px;}
+    .hint{color:#666;font-size:14px;line-height:1.6;}
+    .word-box{background:#fff3bf;border:3px dashed #ff922b;border-radius:22px;padding:24px 12px;margin:18px 0;font-size:34px;font-weight:900;letter-spacing:1px;}
+    .small{font-size:13px;color:#666;line-height:1.5;}
+    .timer{text-align:center;font-size:58px;font-weight:900;margin:20px 0;color:#e8590c;}
+    .controls{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .result-list{line-height:1.9;font-size:16px;}
+    .wolf{color:#e03131;font-weight:900;}
+    .villager{color:#1971c2;font-weight:900;}
+    .toast{background:#fff0f6;border:2px solid #f783ac;color:#862e9c;padding:10px;border-radius:14px;margin-top:10px;font-weight:700;font-size:13px;}
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="badge">BBQ・飲み会用プチゲーム</div>
+      <h1>🐺 Wolf Talk Party</h1>
+      <p class="subtitle">1台スマホを回して、ひとりだけ違うお題の人を探そう</p>
+    </div>
+
+    <section id="setup" class="card">
+      <p class="section-title">🎮 ゲーム設定</p>
+      <div class="row">
+        <div>
+          <label for="players">人数</label>
+          <select id="players"></select>
+        </div>
+        <div>
+          <label for="wolves">ウルフ人数</label>
+          <select id="wolves"></select>
+        </div>
+      </div>
+
+      <label>ゲームモード</label>
+      <div class="seg" id="modeButtons">
+        <button type="button" data-mode="standard" class="active">スタンダード</button>
+        <button type="button" data-mode="niapin">ニアピン</button>
+        <button type="button" data-mode="hard">激ムズ</button>
+      </div>
+      <p class="small" id="modeHelp">レイヤーが違うお題（例：ホテル／沖縄）。勘違いで会話が成立してしまう滑稽さがクセになる。</p>
+
+      <label>カテゴリ選択（複数OK）</label>
+      <div class="chips" id="categoryChips"></div>
+
+      <label>トーク時間</label>
+      <div class="timer-options" id="timerButtons">
+        <button type="button" data-min="3" class="active">3分</button>
+        <button type="button" data-min="5">5分</button>
+        <button type="button" data-min="7">7分</button>
+        <button type="button" data-min="0">なし</button>
+      </div>
+      <div id="error" class="toast hidden"></div>
+      <button class="primary" type="button" id="startBtn">ゲーム開始!</button>
+    </section>
+
+    <section id="reveal" class="card hidden">
+      <div class="game-header">
+        <p class="section-title" style="justify-content:center;">👀 お題確認</p>
+        <div class="category-pill" id="sharedCategory">カテゴリ：---</div>
+        <p class="hint">スマホを回して、自分の番だけ見てください。見終わったら隠して次の人へ。</p>
+      </div>
+      <div class="player-card">
+        <p class="player-num" id="playerTitle">Player 1</p>
+        <button class="secondary" type="button" id="showWordBtn">自分のお題を見る</button>
+        <div id="wordBox" class="word-box hidden"></div>
+        <button class="primary hidden" type="button" id="nextPlayerBtn">隠して次の人へ</button>
+      </div>
+    </section>
+
+    <section id="talk" class="card hidden">
+      <p class="section-title">🔥 トークタイム</p>
+      <div class="category-pill" id="talkCategory">カテゴリ：---</div>
+      <p class="hint">誰がウルフか探り合いましょう。直接お題を言うのは禁止がおすすめです。</p>
+      <div class="timer" id="timerDisplay">03:00</div>
+      <div class="controls">
+        <button class="secondary" type="button" id="pauseBtn">一時停止</button>
+        <button class="danger" type="button" id="finishBtn">正解発表</button>
+      </div>
+    </section>
+
+    <section id="result" class="card hidden">
+      <p class="section-title">🎉 正解発表</p>
+      <div id="resultContent" class="result-list"></div>
+      <button class="primary" type="button" id="againBtn">同じ設定でもう一回</button>
+      <button class="secondary" type="button" id="resetBtn" style="margin-top:10px;">設定に戻る</button>
+    </section>
+  </div>
+
+<script>
+(() => {
+  // ============================================================
+  // スタンダード：レイヤーが違うペア（勘違いで会話が長く成立する）
+  // 「物 × 場所・時・状況」のように、文脈は同じだが指してるものが違う
+  // ============================================================
+  const standardData = {
+    "旅行": [
+      ["ホテル", "沖縄"], ["温泉", "北海道"], ["飛行機", "ハワイ"],
+      ["スーツケース", "海外"], ["旅館", "京都"], ["お土産", "観光地"],
+      ["ガイドブック", "ヨーロッパ"], ["ビーチ", "夏休み"]
+    ],
+    "食事": [
+      ["寿司", "銀座"], ["焼肉", "誕生日"], ["ワイン", "フレンチ"],
+      ["居酒屋", "金曜日"], ["コース料理", "記念日"], ["ビール", "夏祭り"],
+      ["お弁当", "ピクニック"], ["蕎麦", "大晦日"]
+    ],
+    "日常": [
+      ["スマホ", "通勤"], ["コーヒー", "朝"], ["傘", "梅雨"],
+      ["財布", "買い物"], ["布団", "日曜日"], ["イヤホン", "電車"],
+      ["コタツ", "冬"], ["アイス", "夏休み"]
+    ],
+    "仕事": [
+      ["パワポ", "プレゼン"], ["名刺", "営業"], ["Zoom", "在宅"],
+      ["スーツ", "月曜日"], ["有給", "金曜日"], ["カレンダー", "締切"],
+      ["ネクタイ", "面接"], ["残業", "深夜"]
+    ],
+    "恋愛": [
+      ["指輪", "プロポーズ"], ["花束", "記念日"], ["手紙", "告白"],
+      ["ドレス", "結婚式"], ["写真", "デート"], ["香水", "初対面"],
+      ["ベンチ", "公園デート"]
+    ],
+    "趣味": [
+      ["カメラ", "旅行"], ["筋トレ", "夏"], ["読書", "週末"],
+      ["ボール", "公園"], ["ゲーム", "休日"], ["釣り", "早朝"],
+      ["ギター", "ライブハウス"]
+    ]
+  };
+
+  // ============================================================
+  // ニアピン：強い連想ペア（同じシーン内の別物・即違和感が出る）
+  // ============================================================
+  const niapinData = {
+    "イベント": [
+      ["クリスマスケーキ", "サンタ"], ["年賀状", "お年玉"], ["豆まき", "鬼"],
+      ["浴衣", "花火"], ["かぼちゃ", "仮装"], ["門松", "おせち"],
+      ["卒業証書", "袴"], ["こいのぼり", "兜"]
+    ],
+    "季節": [
+      ["スイカ", "海"], ["雪だるま", "こたつ"], ["紅葉", "焼き芋"],
+      ["桜", "入学式"], ["蚊取り線香", "風鈴"], ["かき氷", "プール"],
+      ["みかん", "こたつ"], ["ひまわり", "蝉"]
+    ],
+    "学校": [
+      ["上履き", "下駄箱"], ["黒板", "チョーク"], ["給食", "牛乳パック"],
+      ["体操着", "運動会"], ["教科書", "ランドセル"], ["卒業アルバム", "寄せ書き"],
+      ["時間割", "チャイム"]
+    ],
+    "結婚": [
+      ["ウェディングドレス", "ブーケ"], ["指輪", "誓いのキス"], ["ご祝儀", "受付"],
+      ["新郎", "ベール"], ["スピーチ", "司会"], ["招待状", "席次表"]
+    ],
+    "旅行先": [
+      ["パスポート", "機内食"], ["温泉", "浴衣"], ["お土産", "免税店"],
+      ["地図", "ガイド"], ["お守り", "おみくじ"], ["カメラ", "三脚"]
+    ],
+    "スポーツ観戦": [
+      ["ビール", "ホットドッグ"], ["応援団", "メガホン"], ["ハチマキ", "鳴り物"],
+      ["スコアボード", "実況"], ["ユニフォーム", "サイン"]
+    ],
+    "BBQ・キャンプ": [
+      ["炭", "うちわ"], ["テント", "焚き火"], ["クーラーボックス", "氷"],
+      ["飯ごう", "薪"], ["虫除け", "蚊"], ["寝袋", "星空"]
+    ]
+  };
+
+  // ============================================================
+  // 激ムズ：ほぼ同じペア（易しい単語だけど見分けがつかない）
+  // ============================================================
+  const hardPairs = [
+    ["寿司", "刺身"], ["ラーメン", "つけ麺"], ["うどん", "そば"],
+    ["コーラ", "ペプシ"], ["温泉", "銭湯"], ["焼肉", "鉄板焼き"],
+    ["プリン", "ゼリー"], ["パン", "サンドイッチ"], ["カレー", "シチュー"],
+    ["お茶", "麦茶"], ["焼きそば", "焼きうどん"], ["バナナ", "りんご"],
+    ["クッキー", "ビスケット"], ["ハンバーグ", "つくね"], ["卵焼き", "オムレツ"],
+    ["ぶどう", "マスカット"], ["コーヒー", "カフェオレ"], ["パンケーキ", "ホットケーキ"],
+    ["みかん", "オレンジ"], ["ハグ", "握手"], ["散歩", "ジョギング"],
+    ["スリッパ", "サンダル"], ["ジーンズ", "チノパン"], ["メガネ", "サングラス"],
+    ["枕", "クッション"], ["机", "テーブル"], ["バス", "電車"],
+    ["タクシー", "Uber"], ["ノート", "メモ帳"], ["カレー", "ハヤシライス"]
+  ];
+
+  const $ = (id) => document.getElementById(id);
+  const screens = ["setup","reveal","talk","result"].map($);
+  const playersSel = $("players"), wolvesSel = $("wolves"), categoryChips = $("categoryChips");
+  const modeHelp = $("modeHelp"), error = $("error");
+  let state = {
+    players: 6, wolves: 1, mode: "standard", minutes: 3,
+    categories: [], assignments: [], current: 0,
+    timerId: null, remaining: 180, paused:false, sharedCategory:""
+  };
+
+  const modeDescriptions = {
+    standard: "レイヤーが違うお題（例：ホテル／沖縄）。勘違いで会話が成立してしまう滑稽さがクセになる。",
+    niapin: "強い連想ペア（例：クリスマスケーキ／サンタ）。同じシーンの別物。すぐ違和感が出るスピード戦。",
+    hard: "ほぼ同じペア（例：寿司／刺身）。単語は易しいけど見分けがつかない究極の心理戦。"
+  };
+
+  function getDataForMode(){
+    if(state.mode === "standard") return standardData;
+    if(state.mode === "niapin") return niapinData;
+    return null;
+  }
+
+  function initSelects(){
+    for(let i=4;i<=15;i++) playersSel.add(new Option(i + "人", i));
+    playersSel.value = 6;
+    updateWolfOptions();
+    playersSel.addEventListener("change", () => { state.players = Number(playersSel.value); updateWolfOptions(); });
+    wolvesSel.addEventListener("change", () => state.wolves = Number(wolvesSel.value));
+  }
+  function updateWolfOptions(){
+    const max = Math.min(3, Math.max(1, Math.floor(Number(playersSel.value)/3)));
+    const current = Number(wolvesSel.value || 1);
+    wolvesSel.innerHTML = "";
+    for(let i=1;i<=max;i++) wolvesSel.add(new Option(i + "人", i));
+    wolvesSel.value = Math.min(current, max);
+    state.wolves = Number(wolvesSel.value);
+  }
+  function getAllCategories(){
+    const d = getDataForMode();
+    if(!d) return ["激ムズ"];
+    return Object.keys(d);
+  }
+  function renderCategories(){
+    categoryChips.innerHTML = "";
+    if(state.mode === "hard"){
+      categoryChips.innerHTML = '<div class="small" style="grid-column:span 2;text-align:center;padding:14px;background:#fff5f5;border:2px solid #ffc9c9;border-radius:14px;">激ムズモードでは全カテゴリミックスで出題されます</div>';
+      return;
+    }
+    const cats = getAllCategories();
+    cats.forEach((cat)=>{
+      const label = document.createElement("label");
+      label.className = "chip";
+      label.innerHTML = `<input type="checkbox" value="${cat}" checked><span>${cat}</span>`;
+      categoryChips.appendChild(label);
+    });
+  }
+  function initButtons(){
+    document.querySelectorAll("#modeButtons button").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll("#modeButtons button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        state.mode = btn.dataset.mode;
+        modeHelp.textContent = modeDescriptions[state.mode];
+        renderCategories();
+      });
+    });
+    document.querySelectorAll("#timerButtons button").forEach(btn=>{
+      btn.addEventListener("click",()=>{
+        document.querySelectorAll("#timerButtons button").forEach(b=>b.classList.remove("active"));
+        btn.classList.add("active");
+        state.minutes = Number(btn.dataset.min);
+      });
+    });
+    $("startBtn").addEventListener("click", startGame);
+    $("showWordBtn").addEventListener("click", showWord);
+    $("nextPlayerBtn").addEventListener("click", nextPlayer);
+    $("pauseBtn").addEventListener("click", togglePause);
+    $("finishBtn").addEventListener("click", showResult);
+    $("againBtn").addEventListener("click", startGame);
+    $("resetBtn").addEventListener("click", ()=>showScreen("setup"));
+  }
+  function showScreen(id){
+    screens.forEach(s=>s.classList.add("hidden"));
+    $(id).classList.remove("hidden");
+  }
+  function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function shuffle(arr){
+    for(let i=arr.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [arr[i],arr[j]]=[arr[j],arr[i]]; }
+    return arr;
+  }
+  function getSelectedCategories(){
+    return [...categoryChips.querySelectorAll("input:checked")].map(i=>i.value);
+  }
+  function pickWords(categories){
+    if(state.mode === "hard"){
+      const pair = rand(hardPairs);
+      const shuffled = Math.random() < 0.5 ? pair : [pair[1], pair[0]];
+      state.sharedCategory = "激ムズ";
+      return {major:shuffled[0], wolf:shuffled[1], majorCat:"激ムズ", wolfCat:"激ムズ"};
+    }
+    const d = getDataForMode();
+    const cat = rand(categories);
+    const pair = rand(d[cat]);
+    const shuffled = Math.random() < 0.5 ? pair : [pair[1], pair[0]];
+    state.sharedCategory = cat;
+    return {major:shuffled[0], wolf:shuffled[1], majorCat:cat, wolfCat:cat};
+  }
+  function startGame(){
+    clearInterval(state.timerId);
+    error.classList.add("hidden");
+    state.players = Number(playersSel.value);
+    state.wolves = Number(wolvesSel.value);
+    state.categories = getSelectedCategories();
+    if(state.mode !== "hard" && state.categories.length === 0){
+      error.textContent = "カテゴリを1つ以上選んでください。";
+      error.classList.remove("hidden");
+      return;
+    }
+    if(state.wolves >= state.players){
+      error.textContent = "ウルフ人数は参加人数より少なくしてください。";
+      error.classList.remove("hidden");
+      return;
+    }
+
+    const words = pickWords(state.categories);
+    const roles = Array(state.wolves).fill("wolf").concat(Array(state.players-state.wolves).fill("villager"));
+    shuffle(roles);
+    state.assignments = roles.map((role, idx)=>({
+      player: idx+1,
+      role,
+      word: role === "wolf" ? words.wolf : words.major,
+      category: role === "wolf" ? words.wolfCat : words.majorCat,
+      majorWord: words.major,
+      wolfWord: words.wolf,
+      majorCat: words.majorCat,
+      wolfCat: words.wolfCat
+    }));
+    state.current = 0;
+    $("sharedCategory").textContent = "共有カテゴリ：" + state.sharedCategory;
+    $("talkCategory").textContent = "共有カテゴリ：" + state.sharedCategory;
+    renderReveal();
+    showScreen("reveal");
+  }
+  function renderReveal(){
+    $("playerTitle").textContent = "Player " + (state.current + 1);
+    $("wordBox").classList.add("hidden");
+    $("nextPlayerBtn").classList.add("hidden");
+    $("showWordBtn").classList.remove("hidden");
+    $("wordBox").textContent = "";
+  }
+  function showWord(){
+    const a = state.assignments[state.current];
+    $("wordBox").textContent = a.word;
+    $("wordBox").classList.remove("hidden");
+    $("showWordBtn").classList.add("hidden");
+    $("nextPlayerBtn").textContent = state.current === state.players-1 ? "全員確認完了 → トーク開始" : "隠して次の人へ";
+    $("nextPlayerBtn").classList.remove("hidden");
+  }
+  function nextPlayer(){
+    if(state.current < state.players-1){ state.current++; renderReveal(); }
+    else { startTalk(); }
+  }
+  function startTalk(){
+    state.remaining = state.minutes * 60;
+    state.paused = false;
+    $("pauseBtn").textContent = "一時停止";
+    updateTimer();
+    showScreen("talk");
+    clearInterval(state.timerId);
+    if(state.minutes > 0){
+      state.timerId = setInterval(()=>{
+        if(!state.paused){
+          state.remaining--;
+          updateTimer();
+          if(state.remaining <= 0){ clearInterval(state.timerId); $("timerDisplay").textContent = "終了!"; }
+        }
+      },1000);
+    } else {
+      $("timerDisplay").textContent = "∞";
+    }
+  }
+  function updateTimer(){
+    if(state.minutes === 0){ $("timerDisplay").textContent = "∞"; return; }
+    const m = String(Math.max(0, Math.floor(state.remaining/60))).padStart(2,"0");
+    const s = String(Math.max(0, state.remaining%60)).padStart(2,"0");
+    $("timerDisplay").textContent = `${m}:${s}`;
+  }
+  function togglePause(){
+    state.paused = !state.paused;
+    $("pauseBtn").textContent = state.paused ? "再開" : "一時停止";
+  }
+  function showResult(){
+    clearInterval(state.timerId);
+    const first = state.assignments[0];
+    const wolves = state.assignments.filter(a=>a.role==="wolf").map(a=>`Player ${a.player}`).join("、");
+    const details = state.assignments.map(a=>`<div>Player ${a.player}：<span class="${a.role==='wolf'?'wolf':'villager'}">${a.role==='wolf'?'ウルフ':'多数派'}</span> / ${a.word}</div>`).join("");
+    $("resultContent").innerHTML = `
+      <p>ウルフは <span class="wolf">${wolves}</span> でした!</p>
+      <p>多数派のお題：<span class="villager">${first.majorWord}</span>（${first.majorCat}）<br>ウルフのお題：<span class="wolf">${first.wolfWord}</span>（${first.wolfCat}）</p>
+      <hr>
+      ${details}
+    `;
+    showScreen("result");
+  }
+
+  initSelects();
+  renderCategories();
+  initButtons();
+})();
+</script>
+</body>
+</html>
